@@ -4,6 +4,7 @@ const path = require("path");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const { DefinePlugin } = require('webpack');
+const Dotenv = require('dotenv-webpack');
 const TerserPlugin = require("terser-webpack-plugin");
 
 require('dotenv').config({
@@ -30,6 +31,7 @@ const config = {
     new HtmlWebpackPlugin({
       template: "src/pages/index.html"
     }),
+    new Dotenv(),
 
     new MiniCssExtractPlugin(),
 
