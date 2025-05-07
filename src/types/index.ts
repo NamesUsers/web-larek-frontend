@@ -13,6 +13,7 @@ export interface Order {
   phone: string;
   payment: PaymentType;
   items: string[]; // id товаров
+  total: number;
 }
 
 export type PaymentType = 'card' | 'cash';
@@ -29,20 +30,18 @@ export interface IApi {
 
 export type ApiPostMethod = 'POST' | 'PUT' | 'DELETE';
 
-
 export interface ICart {
   items: string[]; // id товаров
+  total: number;
   add(id: string): void;
   remove(id: string): void;
   clear(): void;
   getTotal(products: Product[]): number;
 }
 
-
 export interface IProductCardView {
   render(product: Product): HTMLElement;
 }
-
 
 export interface ICartView {
   render(cart: ICart, products: Product[]): HTMLElement;
@@ -58,7 +57,6 @@ export type AppEvents =
   | 'checkout:step1:complete'
   | 'checkout:submit'
   | 'order:success';
-
 
 export interface IEvents {
   on<T = any>(event: AppEvents, callback: (data: T) => void): void;
