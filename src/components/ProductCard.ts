@@ -14,6 +14,7 @@ export class ProductCard {
 			<p class="product-card__price">${product.price} ₽</p>
 		`;
 
+		// Событие открытия модального окна по клику на карточку
 		card.addEventListener('click', () => {
 			this.events.emit('modal:open', product.id);
 		});

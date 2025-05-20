@@ -7,7 +7,8 @@ export class ProductModel {
 	constructor(private api: Api) {}
 
 	async load(): Promise<void> {
-		const response = await this.api.get<ApiListResponse<Product>>('/product');
+		const response = await this.api.get<ApiListResponse<Product>>('/products');
+
 		this.products = response.items;
 	}
 

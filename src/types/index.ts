@@ -49,14 +49,14 @@ export interface ICartView {
 
 export type AppEvents =
   | 'modal:open'
-  | 'modal:close'
-  | 'product:add'
-  | 'product:remove'
   | 'cart:open'
+  | 'cart:add'
+  | 'cart:remove'
   | 'cart:clear'
   | 'checkout:step1:complete'
   | 'checkout:submit'
   | 'order:success';
+
 
 export interface IEvents {
   on<T = any>(event: AppEvents, callback: (data: T) => void): void;
