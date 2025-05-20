@@ -29,7 +29,6 @@ export class Api {
         const cleanBase = this.baseUrl.replace(/\/+$/, '');
         const cleanUri = uri.replace(/^\/+/, '');
         const fullUrl = `${cleanBase}/${cleanUri}`;
-        console.log('🛠️ Fetching URL:', fullUrl); // 👈 вставка сюда
         return fullUrl;
     }
 

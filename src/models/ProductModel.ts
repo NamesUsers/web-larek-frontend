@@ -1,15 +1,10 @@
-import { Product, ApiListResponse } from '../types';
-import { Api } from '../components/base/api';
+import { Product } from '../types';
 
 export class ProductModel {
 	private products: Product[] = [];
 
-	constructor(private api: Api) {}
-
-	async load(): Promise<void> {
-		const response = await this.api.get<ApiListResponse<Product>>('/products');
-
-		this.products = response.items;
+	setItems(items: Product[]) {
+		this.products = items;
 	}
 
 	getAll(): Product[] {
