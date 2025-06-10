@@ -18,8 +18,8 @@ export class Order {
 		this.buttons.forEach((button) => {
 			button.addEventListener('click', () => {
 				this.payment = button.name as PaymentType;
-				this.buttons.forEach((btn) => btn.classList.remove('button_alt-active'));
-				button.classList.add('button_alt-active');
+				this.buttons.forEach((btn) => btn.classList.remove('form__button_alt-active'));
+				button.classList.add('form__button_alt-active');
 				this.validate();
 			});
 		});

@@ -30,7 +30,8 @@ export class Cart {
 
 			(item.querySelector('.basket__item-index') as HTMLElement).textContent = `${index + 1}`;
 			(item.querySelector('.card__title') as HTMLElement).textContent = product.title;
-			(item.querySelector('.card__price') as HTMLElement).textContent = `${product.price} синапсов`;
+			(item.querySelector('.card__price') as HTMLElement).textContent =
+				product.price === null ? 'Бесценно' : `${product.price} синапсов`;
 
 			const deleteButton = item.querySelector('.basket__item-delete') as HTMLButtonElement;
 			deleteButton.addEventListener('click', () => {

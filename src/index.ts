@@ -25,6 +25,7 @@ const cart = new CartModel();
 const events = new EventEmitter() as IEvents;
 const catalog = new Catalog(document.querySelector('.gallery')!, events);
 const modal = new ProductModal(document.body, events);
+
 const orderStep = new Order(document.body, events);
 const contactsStep = new Contacts(document.body, events);
 const successScreen = new Success(events);
@@ -55,6 +56,25 @@ events.on('modal:open', ({ productId }: { productId: string }) => {
 	if (!product) return;
 
 	const inCart = cart.getAll().some(p => p.id === productId);
+
+	// Вставка шаблона в .modal__content
+	const content = document.querySelector('.modal__content');
+	if (!content) {
+		console.error('❌ .modal__content не найден!');
+		return;
+	}
+	content.innerHTML = '';
+
+	const template = document.querySelector<HTMLTemplateElement>('#card-preview');
+	if (!template) {
+		console.error('❌ Шаблон #card-preview не найден!');
+		return;
+	}
+
+	const node = template.content.cloneNode(true);
+	content.append(node);
+
+	// Заполнение и показ
 	modal.open(product, inCart);
 	showModal();
 });

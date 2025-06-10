@@ -1,39 +1,51 @@
 import { Product } from '../types';
 import { IEvents } from '../types';
+import { CDN_URL } from '../utils/constants';
 
 export class ProductModal {
 	private modal: HTMLElement;
-	private image: HTMLImageElement;
-	private title: HTMLElement;
-	private description: HTMLElement;
-	private price: HTMLElement;
-	private action: HTMLButtonElement;
-	private closeBtn: HTMLElement;
 
 	constructor(
 		private container: HTMLElement,
 		private events: IEvents
 	) {
-		this.modal = document.querySelector('.modal')!; // используем готовую разметку
-		this.image = this.modal.querySelector('.modal__image')!;
-		this.title = this.modal.querySelector('.modal__title')!;
-		this.description = this.modal.querySelector('.modal__description')!;
-		this.price = this.modal.querySelector('.modal__price')!;
-		this.action = this.modal.querySelector('.modal__action')!;
-		this.closeBtn = this.modal.querySelector('.modal__close')!;
+		this.modal = document.querySelector('.modal')!;
+		const closeBtn = this.modal.querySelector('.modal__close');
+		if (closeBtn) {
+			closeBtn.addEventListener('click', () => this.close());
+		}
 
-		this.closeBtn.addEventListener('click', () => this.close());
 		this.modal.addEventListener('click', (e) => {
 			if (e.target === this.modal) this.close();
 		});
 	}
 
 	open(product: Product, inCart: boolean) {
-		this.image.src = product.image;
-		this.title.textContent = product.title;
-		this.description.textContent = product.description;
-		this.price.textContent = product.price === null ? 'Бесценно' : `${product.price} синапсов`;
-		this.action.textContent = inCart ? 'Удалить из корзины' : 'Добавить в корзину';
+		const image = this.modal.querySelector('.card__image') as HTMLImageElement | null;
+		if (image) image.src = `${CDN_URL}/${product.image}`;
+
+		const title = this.modal.querySelector('.card__title');
+		if (title) title.textContent = product.title;
+
+		const description = this.modal.querySelector('.card__text');
+		if (description) description.textContent = product.description;
+
+		const price = this.modal.querySelector('.card__price');
+		if (price) {
+			price.textContent = product.price === null ? 'Бесценно' : `${product.price} синапсов`;
+		}
+
+		const button = this.modal.querySelector('.card__button') as HTMLButtonElement | null;
+		if (button) {
+			button.textContent = inCart ? 'Удалить из корзины' : 'В корзину';
+			button.onclick = () => {
+				this.events.emit(inCart ? 'cart:remove' : 'cart:add', {
+					productId: product.id,
+				});
+				this.close();
+			};
+		}
+
 		this.modal.classList.add('modal_active');
 	}
 
