@@ -24,6 +24,15 @@ export class ProductModal {
 		const image = this.modal.querySelector('.card__image') as HTMLImageElement | null;
 		if (image) image.src = `${CDN_URL}/${product.image}`;
 
+		// ✅ Добавляем замену категории
+		const category = this.modal.querySelector('.card__category');
+		if (category) {
+			const key = this.getCategoryKey(product.category);
+			const label = this.getCategoryName(key || 'other');
+			category.className = `card__category card__category_${key}`;
+			category.textContent = label;
+		}
+
 		const title = this.modal.querySelector('.card__title');
 		if (title) title.textContent = product.title;
 
@@ -51,5 +60,30 @@ export class ProductModal {
 
 	close() {
 		this.modal.classList.remove('modal_active');
+	}
+
+	private getCategoryKey(raw: string): string | null {
+		const category = raw.trim().toLowerCase();
+		switch (category) {
+			case 'софт-скил': return 'soft';
+			case 'хард-скил': return 'hard';
+			case 'дополнительное': return 'additional';
+			case 'кнопка': return 'button';
+			case 'другое': return 'other';
+			default:
+				console.warn('[МОДАЛКА: НЕИЗВЕСТНАЯ КАТЕГОРИЯ]', raw);
+				return null;
+		}
+	}
+
+	private getCategoryName(key: string): string {
+		switch (key) {
+			case 'soft': return 'софт-скил';
+			case 'hard': return 'хард-скил';
+			case 'additional': return 'дополнительное';
+			case 'button': return 'кнопка';
+			case 'other': return 'другое';
+			default: return 'неизвестно';
+		}
 	}
 }

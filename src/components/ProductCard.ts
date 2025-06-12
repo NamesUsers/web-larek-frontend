@@ -9,12 +9,16 @@ export class ProductCard {
     const card = document.createElement('div');
     card.className = 'card card__column';
 
-    // правильный SCSS-совместимый класс и текст
     const categoryKey = this.getCategoryKey(product.category);
-    const categoryLabel = this.getCategoryName(categoryKey);
+    const categoryLabel = this.getCategoryName(categoryKey || 'other');
+
+    const className = categoryKey
+      ? `card__category card__category_${categoryKey}`
+      : 'card__category';
+
 
     card.innerHTML = `
-      <div class="card__category card__category_${categoryKey}">
+      <div class="${className}">
         ${categoryLabel}
       </div>
       <img src="${CDN_URL}/${product.image}" alt="${product.title}" class="card__image"/>
@@ -23,7 +27,6 @@ export class ProductCard {
         ${product.price === null ? 'Бесценно' : product.price + ' синапсов'}
       </p>
     `;
-console.log('Категория:', product.category);
 
     card.addEventListener('click', () => {
       this.events.emit('modal:open', { productId: product.id });
@@ -32,35 +35,28 @@ console.log('Категория:', product.category);
     return card;
   }
 
-  // Возвращает ключ категории для SCSS
-  private getCategoryKey(category: string): string {
+  private getCategoryKey(raw: string): string | null {
+    const category = raw.trim().toLowerCase();
     switch (category) {
-      case 'software':
-        return 'soft';
-      case 'hardware':
-        return 'hard';
-      case 'magic':
-        return 'additional';
-      case 'rare':
-        return 'other';
+      case 'софт-скил': return 'soft';
+      case 'хард-скил': return 'hard';
+      case 'дополнительное': return 'additional';
+      case 'кнопка': return 'button';
+      case 'другое': return 'other';
       default:
-        return 'other';
+        console.warn('[НЕИЗВЕСТНАЯ КАТЕГОРИЯ]', raw);
+        return null;
     }
   }
 
-  // Возвращает текст категории для отображения
-  private getCategoryName(categoryKey: string): string {
-    switch (categoryKey) {
-      case 'soft':
-        return 'софт-скилл';
-      case 'hard':
-        return 'доступен';
-      case 'additional':
-        return 'магия';
-      case 'other':
-        return 'другое';
-      default:
-        return '';
+  private getCategoryName(key: string): string {
+    switch (key) {
+      case 'soft': return 'софт-скил';
+      case 'hard': return 'хард-скил';
+      case 'additional': return 'дополнительное';
+      case 'button': return 'кнопка';
+      case 'other': return 'другое';
+      default: return 'неизвестно';
     }
   }
 }
