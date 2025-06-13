@@ -22,7 +22,8 @@ export class ProductModal {
 
 	open(product: Product, inCart: boolean) {
 		const image = this.modal.querySelector('.card__image') as HTMLImageElement | null;
-		if (image) image.src = `${CDN_URL}/${product.image}`;
+		if (image) image.src = `${CDN_URL}/${product.image.replace('.svg', '.png')}`;
+
 
 		// ✅ Добавляем замену категории
 		const category = this.modal.querySelector('.card__category');

@@ -16,12 +16,13 @@ export class ProductCard {
       ? `card__category card__category_${categoryKey}`
       : 'card__category';
 
+    const imagePath = product.image.replace('.svg', '.png');
 
     card.innerHTML = `
       <div class="${className}">
         ${categoryLabel}
       </div>
-      <img src="${CDN_URL}/${product.image}" alt="${product.title}" class="card__image"/>
+      <img src="${CDN_URL}/${imagePath}" alt="${product.title}" class="card__image"/>
       <h3 class="card__title">${product.title}</h3>
       <p class="card__price">
         ${product.price === null ? 'Бесценно' : product.price + ' синапсов'}

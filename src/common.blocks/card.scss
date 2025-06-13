@@ -8,6 +8,11 @@
   background-color: $primary;
   color: white;
   padding: $defaultPadding;
+  transition: background-color 0.3s ease;
+
+  &:hover {
+    background-color: #1E334F;
+  }
 
   &_full {
     flex-direction: row;
@@ -83,4 +88,11 @@
   &__price {
 
   }
+}
+
+.modal .card:hover {
+  background-color: transparent;
+  box-shadow: none;
+  transform: none;
+  cursor: default;
 }

@@ -13,15 +13,16 @@ export class Order {
   }
 
   render() {
+    // Сброс выбора оплаты при каждом открытии
+    this.payment = null;
+
     const modalContent = document.body.querySelector('.modal__content')!;
     modalContent.innerHTML = '';
 
-    // 🔁 Повторно клонируем шаблон при каждом открытии
     const template = document.querySelector<HTMLTemplateElement>('#order')!;
     const clone = template.content.cloneNode(true) as HTMLElement;
     modalContent.append(clone);
 
-    // 🔄 Повторно переопределим ссылки на форму, адрес и кнопки
     this.form = modalContent.querySelector('form')!;
     this.address = this.form.querySelector('input[name="address"]')!;
     this.buttons = this.form.querySelectorAll('button.button_alt');
@@ -39,17 +40,21 @@ export class Order {
 
     this.form.addEventListener('submit', (e) => {
       e.preventDefault();
-      if (!this.payment || !this.address.value) return; // ⛔ Предохранитель
+      if (!this.payment || !this.address.value) return;
 
       this.events.emit('checkout:submit', {
         address: this.address.value,
         payment: this.payment,
       });
     });
+
+    // начальная проверка валидации
+    this.validate();
   }
 
   validate() {
     const button = this.form.querySelector('button[type="submit"]') as HTMLButtonElement;
+
     button.disabled = !this.address.value.trim() || !this.payment;
   }
 }

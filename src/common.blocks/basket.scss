@@ -37,3 +37,9 @@
     }
   }
 }
+
+.basket__list {
+  overflow-y: auto;
+  max-height: 60vh; 
+  padding-right: 0.5rem; 
+}

@@ -85,6 +85,7 @@ events.on('cart:add', ({ productId }: { productId: string }) => {
 		cart.add(product);
 		cartView?.render(cart.getAll(), cart.getTotal());
 		updateCounter();
+		updateCheckoutButton();
 	}
 });
 
@@ -92,6 +93,7 @@ events.on('cart:remove', ({ productId }: { productId: string }) => {
 	cart.remove(productId);
 	cartView?.render(cart.getAll(), cart.getTotal());
 	updateCounter();
+	updateCheckoutButton();
 });
 
 document.querySelector('.header__basket')?.addEventListener('click', () => {
@@ -108,6 +110,7 @@ events.on('cart:open', () => {
 
 	cartView = new Cart(document.querySelector('.basket')!, events);
 	cartView.render(cart.getAll(), cart.getTotal());
+	updateCheckoutButton();
 });
 
 events.on('checkout:step1:complete', () => {
@@ -115,8 +118,8 @@ events.on('checkout:step1:complete', () => {
 	showModal();
 });
 
-events.on('checkout:submit', () => {
-	contactsStep.render();
+events.on('checkout:submit', (data) => {
+	contactsStep.render(data);
 	showModal();
 });
 
@@ -125,6 +128,7 @@ events.on('order:success', () => {
 	successScreen.render(total);
 	cart.clear();
 	updateCounter();
+	updateCheckoutButton();
 });
 
 function updateCounter() {
@@ -134,6 +138,16 @@ function updateCounter() {
 	}
 }
 
+function updateCheckoutButton() {
+	const checkoutButton = document.querySelector('.basket__button') as HTMLButtonElement;
+	if (checkoutButton) {
+		checkoutButton.disabled = cart.getAll().length === 0;
+	}
+}
+
 function showModal() {
 	document.querySelector('.modal')?.classList.add('modal_active');
 }
+
+// 👇 Обновим кнопку при первой загрузке
+updateCheckoutButton();
