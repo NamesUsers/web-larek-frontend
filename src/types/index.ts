@@ -39,27 +39,21 @@ export interface ICart {
   getTotal(products: Product[]): number;
 }
 
-export interface IProductCardView {
-  render(product: Product): HTMLElement;
+export interface AppEvents {
+  'modal:open': { productId: string };
+  'cart:add': { productId: string };
+  'cart:remove': { productId: string };
+  'cart:open': void;
+  'checkout:step1:complete': { address: string; payment: string };
+
+  'checkout:submit': { address: string; payment: string };
+  'order:submit': { email: string; phone: string; address: string; payment: string };
+  'order:success': void;
+  'modal:close': void;
+  'order:change': { address?: string; payment?: string };
 }
-
-export interface ICartView {
-  render(cart: ICart, products: Product[]): HTMLElement;
-}
-
-export type AppEvents =
-  | 'modal:open'
-  | 'cart:open'
-  | 'cart:add'
-  | 'cart:remove'
-  | 'cart:clear'
-  | 'checkout:step1:complete'
-  | 'checkout:submit'
-  | 'order:success';
-
 
 export interface IEvents {
-  on<T = any>(event: AppEvents, callback: (data: T) => void): void;
-  emit<T = any>(event: AppEvents, data?: T): void;
-  trigger<T = any>(event: AppEvents): (data: T) => void;
+  on<K extends keyof AppEvents>(event: K, callback: (data: AppEvents[K]) => void): void;
+  emit<K extends keyof AppEvents>(event: K, data: AppEvents[K]): void;
 }

@@ -18,6 +18,7 @@ export class OrderModel {
 		return this.data[key] as OrderData[K] | undefined;
 	}
 
+	// Полная валидация (для submit)
 	isValid(): boolean {
 		return (
 			typeof this.data.address === 'string' &&
@@ -25,6 +26,17 @@ export class OrderModel {
 			typeof this.data.email === 'string' &&
 			typeof this.data.phone === 'string'
 		);
+	}
+
+	// Частичная валидация для кнопки "Оформить заказ"
+	validateBasic(): { isValid: boolean; error?: string } {
+		if (!this.data.address || this.data.address.trim() === '') {
+			return { isValid: false, error: 'Введите адрес доставки' };
+		}
+		if (!this.data.payment) {
+			return { isValid: false, error: 'Выберите способ оплаты' };
+		}
+		return { isValid: true };
 	}
 
 	getData(): OrderData | null {

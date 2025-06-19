@@ -6,7 +6,7 @@ export class Success {
 
   constructor(protected events: IEvents) {}
 
-  render(total: number) {
+  render(total: number): HTMLElement {
     const template = document.querySelector<HTMLTemplateElement>('#success')!;
     const container = template.content.cloneNode(true) as HTMLElement;
 
@@ -15,16 +15,10 @@ export class Success {
     this.amount.textContent = `Списано ${total} синапсов`;
 
     this.closeButton.addEventListener('click', () => {
-      const modal = document.querySelector('.modal');
-      if (modal) modal.classList.remove('modal_active');
+      this.events.emit('modal:close', undefined);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     });
 
-    const modalContent = document.querySelector('.modal__content')!;
-    modalContent.innerHTML = '';
-    modalContent.append(container);
-
-    const modal = document.querySelector('.modal');
-    if (modal) modal.classList.add('modal_active');
+    return container;
   }
 }
