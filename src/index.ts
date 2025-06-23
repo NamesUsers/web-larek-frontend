@@ -5,7 +5,7 @@ import { EventEmitter } from './components/base/events';
 import { API_URL } from './utils/constants';
 
 import { ProductAPI } from './api/ProductAPI';
-import { OrderAPI } from './api/OrderAPI';
+import { OrderAPI, OrderForm } from './api/OrderAPI';
 import { ProductModel } from './models/ProductModel';
 import { CartModel } from './models/CartModel';
 import { OrderModel } from './models/OrderModel';
@@ -20,7 +20,7 @@ import { Contacts } from './components/Contacts';
 import { Success } from './components/Success';
 
 import { AppPresenter } from './presenters/AppPresenter';
-import { IEvents } from './types';
+import { IEvents, PaymentType } from './types';
 
 const api = new Api(API_URL);
 const productApi = new ProductAPI(api);
@@ -35,11 +35,11 @@ const cardBuilder = new ProductCard(events);
 const catalog = new Catalog(document.querySelector('.gallery')!, cardBuilder);
 const modal = new Modal();
 const productModal = new ProductModal(events);
-const orderStep = new Order(document.body, events);
+const orderStep: Order = new Order(document.body, events);
 const contactsStep = new Contacts(document.body, events);
 const successScreen = new Success(events);
 
-const appPresenter = new AppPresenter(orderModel, orderStep, events);
+const appPresenter = new AppPresenter(orderModel, orderStep, contactsStep, events);
 
 let cartView: Cart | null = null;
 
@@ -95,25 +95,22 @@ events.on('cart:open', () => {
   cartView = new Cart(basketRoot, events);
   cartView.render(cart.getAll(), cart.getTotal());
 
-  modal.open(content);
   updateCheckoutButton();
-});
 
-events.on('checkout:step1:complete', ({ address, payment }) => {
-  orderModel.set('address', address);
-  orderModel.set('payment', payment as 'card' | 'cash');
-
-  const content = contactsStep.render({
-    address,
-    payment
+  const checkoutButton = content.querySelector('.basket__button') as HTMLButtonElement;
+  checkoutButton.addEventListener('click', () => {
+    const orderContent = orderStep.render();
+    modal.open(orderContent);
   });
 
   modal.open(content);
 });
 
-events.on('order:submit', ({ email, phone }) => {
+events.on('order:submit', ({ email, phone, address, payment }) => {
   orderModel.set('email', email);
   orderModel.set('phone', phone);
+  orderModel.set('address', address);
+  orderModel.set('payment', payment as PaymentType);
 
   const order = orderModel.getData();
   if (!order) {
@@ -121,11 +118,28 @@ events.on('order:submit', ({ email, phone }) => {
     return;
   }
 
-  orderApi.postOrder({
+  const allItems = cart.getAll();
+  if (allItems.length === 0) {
+    alert('❌ Корзина пуста');
+    return;
+  }
+
+  // Отправляем ТОЛЬКО товары с ценой
+  const items = allItems.filter(p => p.price !== null).map(p => p.id);
+  const total = allItems.reduce((sum, p) => sum + (p.price ?? 0), 0);
+
+  if (items.length === 0) {
+    alert('❌ В заказе нет товаров с ценой. Такие заказы не поддерживаются.');
+    return;
+  }
+
+  const payload: OrderForm = {
     ...order,
-    items: cart.getAll().map(p => p.id),
-    total: cart.getTotal()
-  })
+    items,
+    total
+  };
+
+  orderApi.postOrder(payload)
     .then(() => events.emit('order:success', undefined))
     .catch(() => alert('❌ Ошибка при отправке заказа. Попробуйте позже.'));
 });
@@ -149,3 +163,11 @@ function updateCheckoutButton() {
 }
 
 updateCheckoutButton();
+
+events.on('checkout:step1:complete', ({ address, payment }) => {
+  orderModel.set('address', address);
+  orderModel.set('payment', payment as PaymentType);
+
+  const contactsContent = contactsStep.render({ address, payment });
+  modal.open(contactsContent);
+});

@@ -3,79 +3,79 @@ import { IEvents, PaymentType } from '../types';
 export class Order {
   protected container: HTMLElement;
   protected form: HTMLFormElement;
-  protected address: HTMLInputElement;
+  protected addressInput: HTMLInputElement;
   protected buttons: NodeListOf<HTMLButtonElement>;
-  protected errorField: HTMLElement;
   protected submitButton: HTMLButtonElement;
-  protected payment: PaymentType | null = null;
+  protected errorField: HTMLElement;
+  protected wasInteracted = false;
 
-  constructor(parent: HTMLElement, protected events: IEvents) {
+  constructor(protected parent: HTMLElement, protected events: IEvents) {}
+
+  render(): HTMLElement {
     const template = document.querySelector<HTMLTemplateElement>('#order')!;
     this.container = template.content.cloneNode(true) as HTMLElement;
-  }
 
-  render() {
-    // Сброс оплаты
-    this.payment = null;
-
-    const modalContent = document.body.querySelector('.modal__content')!;
-    modalContent.innerHTML = '';
-
-    const template = document.querySelector<HTMLTemplateElement>('#order')!;
-    const clone = template.content.cloneNode(true) as HTMLElement;
-    modalContent.append(clone);
-
-    this.form = modalContent.querySelector('form')!;
-    this.address = this.form.querySelector('input[name="address"]')!;
-    this.buttons = this.form.querySelectorAll('button.button_alt');
-    this.errorField = this.form.querySelector('.form__errors')!;
+    this.form = this.container.querySelector('form')!;
+    this.addressInput = this.form.querySelector('input[name="address"]')!;
+    this.buttons = this.container.querySelectorAll('.button_alt');
     this.submitButton = this.form.querySelector('button[type="submit"]')!;
+    this.errorField = this.container.querySelector('.form__errors')!;
 
-    // Выбор оплаты
+    this.addressInput.addEventListener('input', () => {
+      this.wasInteracted = true;
+      this.handleInput();
+    });
+
     this.buttons.forEach((button) => {
       button.addEventListener('click', () => {
-        this.payment = button.name as PaymentType;
+        this.wasInteracted = true;
         this.buttons.forEach((btn) => btn.classList.remove('button_alt-active'));
         button.classList.add('button_alt-active');
-        this.emitChange();
+        this.handleInput();
       });
     });
 
-    // Ввод адреса
-    this.address.addEventListener('input', () => {
-      this.emitChange();
-    });
-
-    // Отправка формы
     this.form.addEventListener('submit', (e) => {
       e.preventDefault();
-      if (!this.payment || !this.address.value.trim()) return;
-
-      this.events.emit('checkout:submit', {
-        address: this.address.value.trim(),
-        payment: this.payment,
+      this.events.emit('checkout:step1:complete', {
+        address: this.addressInput.value,
+        payment: this.getSelectedPayment(),
       });
     });
+
+    // Блокируем кнопку изначально
+    this.validate();
+
+    return this.container;
   }
 
-  // Генерирует событие изменения данных формы
+  protected handleInput() {
+    this.emitChange();
+    this.validate();
+  }
+
   protected emitChange() {
     this.events.emit('order:change', {
-      address: this.address.value,
-      payment: this.payment,
+      address: this.addressInput.value,
+      payment: this.getSelectedPayment(),
     });
   }
 
-  // Метод для установки состояния формы извне (из модели)
-  public setValidState(isValid: boolean, errorMessage?: string) {
-    this.submitButton.disabled = !isValid;
+  protected getSelectedPayment(): PaymentType | undefined {
+    const selected = Array.from(this.buttons).find((btn) =>
+      btn.classList.contains('button_alt-active')
+    );
+    return selected?.getAttribute('name') as PaymentType;
+  }
 
-    if (errorMessage) {
-      this.errorField.textContent = errorMessage;
-      this.errorField.classList.add('form__errors_active');
-    } else {
-      this.errorField.textContent = '';
-      this.errorField.classList.remove('form__errors_active');
-    }
+  protected validate() {
+    const isValid = this.addressInput.value.trim() !== '' && !!this.getSelectedPayment();
+    const error = isValid || !this.wasInteracted ? '' : 'Введите адрес и выберите оплату';
+    this.setValidState(isValid, error);
+  }
+
+  public setValidState(isValid: boolean, error?: string) {
+    this.submitButton.disabled = !isValid;
+    this.errorField.textContent = error ?? '';
   }
 }

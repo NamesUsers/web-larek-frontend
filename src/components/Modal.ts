@@ -18,7 +18,7 @@ export class Modal {
 
   open(content: HTMLElement) {
     this.content.innerHTML = '';
-    this.content.append(content);
+    this.content.append(content); // НЕ клонируем, чтобы сохранить обработчики
     this.container.classList.add('modal_active');
   }
 

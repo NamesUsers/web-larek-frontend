@@ -3,7 +3,7 @@ export interface Product {
   title: string;
   description: string;
   category?: string;
-  price: number;
+  price: number | null;
   image: string;
 }
 
@@ -31,7 +31,7 @@ export interface IApi {
 export type ApiPostMethod = 'POST' | 'PUT' | 'DELETE';
 
 export interface ICart {
-  items: string[]; // id товаров
+  items: string[];
   total: number;
   add(id: string): void;
   remove(id: string): void;
@@ -44,13 +44,14 @@ export interface AppEvents {
   'cart:add': { productId: string };
   'cart:remove': { productId: string };
   'cart:open': void;
-  'checkout:step1:complete': { address: string; payment: string };
-
-  'checkout:submit': { address: string; payment: string };
-  'order:submit': { email: string; phone: string; address: string; payment: string };
-  'order:success': void;
   'modal:close': void;
-  'order:change': { address?: string; payment?: string };
+
+  'order:change': { address?: string; payment?: PaymentType };
+  'contacts:change': { email: string; phone: string };
+
+  'checkout:step1:complete': { address: string; payment: PaymentType };
+  'order:submit': { email: string; phone: string; address: string; payment: PaymentType };
+  'order:success': void;
 }
 
 export interface IEvents {

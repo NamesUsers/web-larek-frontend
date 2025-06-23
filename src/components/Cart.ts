@@ -1,55 +1,43 @@
 import { Product, IEvents } from '../types';
+import { CartItem } from './CartItem';
 
 export class Cart {
-  protected list: HTMLElement;
-  protected total: HTMLElement;
+	protected list: HTMLElement;
+	protected total: HTMLElement;
+	protected button: HTMLButtonElement;
 
-  constructor(protected root: HTMLElement, protected events: IEvents) {
-    this.list = this.root.querySelector('.basket__list')!;
-    this.total = this.root.querySelector('.basket__price')!;
+	constructor(
+		protected container: HTMLElement,
+		protected events: IEvents
+	) {
+		this.list = this.container.querySelector('.basket__list')!;
+		this.total = this.container.querySelector('.basket__price')!;
+		this.button = this.container.querySelector('.basket__button')!;
 
-    const form = this.root.querySelector('.basket__order') as HTMLFormElement;
-    if (form) {
-      form.addEventListener('submit', (e) => {
-        e.preventDefault();
+		this.button.addEventListener('click', () => {
+			this.events.emit('checkout:step1:complete', {
+				address: '',
+				payment: 'card',
+			});
+		});
+	}
 
-        const address = (this.root.querySelector('input[name="address"]') as HTMLInputElement)?.value;
-        const payment = this.root.querySelector('.button_alt_active')?.getAttribute('name') || 'card';
+	render(items: Product[], total: number): HTMLElement {
+		this.list.innerHTML = '';
 
-        this.events.emit('checkout:step1:complete', { address, payment });
-      });
-    }
-  }
+		items.forEach((product, index) => {
+			const item = new CartItem(product, index, this.events);
+			this.list.append(item.render());
+		});
 
-  public render(products: Product[], total: number) {
-    this.list.innerHTML = '';
+		this.total.textContent = total === 0
+			? '0 синапсов'
+			: `${total} синапсов`;
 
-    products.forEach((product, index) => {
-      const template = document.querySelector<HTMLTemplateElement>('#card-basket')!;
-      const item = template.content.cloneNode(true) as HTMLElement;
+		return this.container;
+	}
 
-      item.querySelector('.basket__item-index')!.textContent = `${index + 1}`;
-      item.querySelector('.card__title')!.textContent = product.title!;
-      item.querySelector('.card__price')!.textContent = product.price === null
-        ? 'Бесценно'
-        : `${product.price} синапсов`;
-
-      const deleteButton = item.querySelector('.basket__item-delete')!;
-      deleteButton.setAttribute('data-id', product.id);
-      deleteButton.addEventListener('click', () => {
-        this.events.emit('cart:remove', { productId: product.id });
-      });
-
-      this.list.append(item);
-    });
-
-    this.total.textContent = `${total} синапсов`;
-  }
-
-  public setCheckoutEnabled(enabled: boolean) {
-    const checkoutButton = this.root.querySelector('.basket__button') as HTMLButtonElement;
-    if (checkoutButton) {
-      checkoutButton.disabled = !enabled;
-    }
-  }
+	setCheckoutEnabled(state: boolean): void {
+		this.button.disabled = !state;
+	}
 }

@@ -10,15 +10,15 @@ export interface OrderData {
 export class OrderModel {
 	private data: Partial<OrderData> = {};
 
-	set<K extends keyof OrderData>(key: K, value: OrderData[K]) {
+	// Учитываем optional-поля через Partial<OrderData>[K]
+	set<K extends keyof OrderData>(key: K, value: Partial<OrderData>[K]): void {
 		this.data[key] = value;
 	}
 
-	get<K extends keyof OrderData>(key: K): OrderData[K] | undefined {
-		return this.data[key] as OrderData[K] | undefined;
+	get<K extends keyof OrderData>(key: K): Partial<OrderData>[K] {
+		return this.data[key];
 	}
 
-	// Полная валидация (для submit)
 	isValid(): boolean {
 		return (
 			typeof this.data.address === 'string' &&
@@ -28,7 +28,6 @@ export class OrderModel {
 		);
 	}
 
-	// Частичная валидация для кнопки "Оформить заказ"
 	validateBasic(): { isValid: boolean; error?: string } {
 		if (!this.data.address || this.data.address.trim() === '') {
 			return { isValid: false, error: 'Введите адрес доставки' };
