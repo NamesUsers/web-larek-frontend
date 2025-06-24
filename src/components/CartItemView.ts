@@ -14,7 +14,8 @@ export class CartItemView implements ICartItemView {
       throw new Error('Template #card-basket not found');
     }
 
-    this.element = template.content.cloneNode(true) as HTMLElement;
+    const clone = template.content.cloneNode(true) as DocumentFragment;
+    this.element = clone.querySelector('.basket__item') as HTMLElement;
 
     const indexElement = this.element.querySelector('.basket__item-index') as HTMLElement;
     const titleElement = this.element.querySelector('.card__title') as HTMLElement;
@@ -24,6 +25,12 @@ export class CartItemView implements ICartItemView {
     indexElement.textContent = String(index + 1);
     titleElement.textContent = product.title;
     priceElement.textContent = product.price === null ? 'Бесценно' : `${product.price} синапсов`;
+
+    // 👇 Устанавливаем необходимые data-атрибуты (для пересчёта или отладки)
+    this.element.dataset.id = product.id;
+    if (product.price !== null) {
+      this.element.dataset.price = String(product.price);
+    }
 
     deleteButton.addEventListener('click', () => {
       events.emit('cart:remove', { productId: product.id });

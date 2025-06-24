@@ -1,43 +1,40 @@
-import { Product, IEvents } from '../types';
-import { CartItem } from './CartItem';
+import { IEvents } from '../types';
 
 export class Cart {
-	protected list: HTMLElement;
-	protected total: HTMLElement;
-	protected button: HTMLButtonElement;
+	protected rootElement: HTMLElement;
+	protected listElement: HTMLElement;
+	protected totalElement: HTMLElement;
+	protected buttonElement: HTMLButtonElement;
 
-	constructor(
-		protected container: HTMLElement,
-		protected events: IEvents
-	) {
-		this.list = this.container.querySelector('.basket__list')!;
-		this.total = this.container.querySelector('.basket__price')!;
-		this.button = this.container.querySelector('.basket__button')!;
+	constructor(protected events: IEvents) {}
 
-		this.button.addEventListener('click', () => {
-			this.events.emit('checkout:step1:complete', {
-				address: '',
-				payment: 'card',
-			});
-		});
+	/**
+	 * Устанавливает корневой элемент корзины — вызывается из index.ts
+	 */
+	public setRoot(root: HTMLElement) {
+		this.rootElement = root;
+		this.listElement = root.querySelector('.basket__list')!;
+		this.totalElement = root.querySelector('.basket__price')!;
+		this.buttonElement = root.querySelector('.basket__button')!;
 	}
 
-	render(items: Product[], total: number): HTMLElement {
-		this.list.innerHTML = '';
+	/**
+	 * Рендерит содержимое корзины: список элементов и итоговую цену
+	 */
+	public render(items: HTMLElement[], total: number): void {
+		if (!this.listElement || !this.totalElement) return;
 
-		items.forEach((product, index) => {
-			const item = new CartItem(product, index, this.events);
-			this.list.append(item.render());
-		});
-
-		this.total.textContent = total === 0
-			? '0 синапсов'
-			: `${total} синапсов`;
-
-		return this.container;
+		this.listElement.innerHTML = '';
+		items.forEach((item) => this.listElement.append(item));
+		this.totalElement.textContent = `${total} синапсов`;
 	}
 
-	setCheckoutEnabled(state: boolean): void {
-		this.button.disabled = !state;
+	/**
+	 * Активирует или деактивирует кнопку оформления заказа
+	 */
+	public setCheckoutEnabled(enabled: boolean): void {
+		if (this.buttonElement) {
+			this.buttonElement.disabled = !enabled;
+		}
 	}
 }

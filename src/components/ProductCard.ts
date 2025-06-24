@@ -3,31 +3,34 @@ import { IEvents } from '../types';
 import { CDN_URL } from '../utils/constants';
 
 export class ProductCard {
-  constructor(private events: IEvents) {}
+  protected template: HTMLTemplateElement;
+
+  constructor(private events: IEvents) {
+    this.template = document.querySelector<HTMLTemplateElement>('#card-catalog')!;
+  }
 
   render(product: Product): HTMLElement {
-    const card = document.createElement('div');
-    card.className = 'card card__column';
+    const clone = this.template.content.cloneNode(true) as HTMLElement;
+    const card = clone.querySelector('.card') as HTMLElement;
 
     const categoryKey = this.getCategoryKey(product.category);
     const categoryLabel = this.getCategoryName(categoryKey || 'other');
 
-    const className = categoryKey
-      ? `card__category card__category_${categoryKey}`
-      : 'card__category';
+    const categoryEl = card.querySelector('.card__category') as HTMLElement;
+    categoryEl.textContent = categoryLabel;
+    categoryEl.className = `card__category card__category_${categoryKey}`;
 
-    const imagePath = product.image.replace('.svg', '.png');
+    const titleEl = card.querySelector('.card__title') as HTMLElement;
+    titleEl.textContent = product.title;
 
-    card.innerHTML = `
-      <div class="${className}">
-        ${categoryLabel}
-      </div>
-      <img src="${CDN_URL}/${imagePath}" alt="${product.title}" class="card__image"/>
-      <h3 class="card__title">${product.title}</h3>
-      <p class="card__price">
-        ${product.price === null ? 'Бесценно' : product.price + ' синапсов'}
-      </p>
-    `;
+    const imageEl = card.querySelector('.card__image') as HTMLImageElement;
+    imageEl.src = `${CDN_URL}/${product.image.replace('.svg', '.png')}`;
+    imageEl.alt = product.title;
+
+    const priceEl = card.querySelector('.card__price') as HTMLElement;
+    priceEl.textContent = product.price === null
+      ? 'Бесценно'
+      : `${product.price} синапсов`;
 
     card.addEventListener('click', () => {
       this.events.emit('modal:open', { productId: product.id });

@@ -34,7 +34,7 @@
 		</div>
 	</div>
 
-	<!-- Дубли для визуального контекста, они не будут использоваться программно -->
+	<!-- Дубли для визуального контекста -->
 	<div class="modal">
 		<div class="modal__container">
 			<button class="modal__close" aria-label="закрыть"></button>
@@ -111,12 +111,12 @@
 	</template>
 
 	<template id="card-catalog">
-		<button class="gallery__item card">
+		<div class="gallery__item card card__column">
 			<span class="card__category card__category_soft">софт-скил</span>
 			<h2 class="card__title">+1 час в сутках</h2>
 			<img class="card__image" src="<%=require('../images/Subtract.svg')%>" alt="" />
 			<span class="card__price">750 синапсов</span>
-		</button>
+		</div>
 	</template>
 
 	<template id="card-preview">

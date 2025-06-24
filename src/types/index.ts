@@ -50,7 +50,7 @@ export interface AppEvents {
   'contacts:change': { email: string; phone: string };
 
   'checkout:step1:complete': { address: string; payment: PaymentType };
-  'order:submit': { email: string; phone: string; address: string; payment: PaymentType };
+  'order:submit': void; // ✅ исправлено: больше не передаём данные из Contacts
   'order:success': void;
 }
 

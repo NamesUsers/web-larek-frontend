@@ -10,7 +10,6 @@ export interface OrderData {
 export class OrderModel {
 	private data: Partial<OrderData> = {};
 
-	// Учитываем optional-поля через Partial<OrderData>[K]
 	set<K extends keyof OrderData>(key: K, value: Partial<OrderData>[K]): void {
 		this.data[key] = value;
 	}
@@ -36,6 +35,34 @@ export class OrderModel {
 			return { isValid: false, error: 'Выберите способ оплаты' };
 		}
 		return { isValid: true };
+	}
+
+	validateContacts(): {
+		emailValid: boolean;
+		phoneValid: boolean;
+		emailError: string;
+		phoneError: string;
+	} {
+		const email = this.data.email || '';
+		const phone = this.data.phone || '';
+
+		const emailValid = this.validateEmail(email);
+		const phoneValid = this.validatePhone(phone);
+
+		return {
+			emailValid,
+			phoneValid,
+			emailError: emailValid ? '' : 'Некорректный email',
+			phoneError: phoneValid ? '' : 'Некорректный телефон',
+		};
+	}
+
+	private validateEmail(email: string): boolean {
+		return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+	}
+
+	private validatePhone(phone: string): boolean {
+		return /^\+?\d{10,15}$/.test(phone);
 	}
 
 	getData(): OrderData | null {

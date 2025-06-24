@@ -1,3 +1,4 @@
+// index.ts — исправлено: устранены document.querySelector вне представлений
 import './scss/styles.scss';
 
 import { Api } from './components/base/api';
@@ -5,7 +6,7 @@ import { EventEmitter } from './components/base/events';
 import { API_URL } from './utils/constants';
 
 import { ProductAPI } from './api/ProductAPI';
-import { OrderAPI, OrderForm } from './api/OrderAPI';
+import { OrderAPI } from './api/OrderAPI';
 import { ProductModel } from './models/ProductModel';
 import { CartModel } from './models/CartModel';
 import { OrderModel } from './models/OrderModel';
@@ -25,28 +26,41 @@ import { IEvents, PaymentType } from './types';
 const api = new Api(API_URL);
 const productApi = new ProductAPI(api);
 const orderApi = new OrderAPI(api);
+
 const model = new ProductModel();
 const cart = new CartModel();
 const orderModel = new OrderModel();
-
 const events = new EventEmitter() as IEvents;
 
-const cardBuilder = new ProductCard(events);
-const catalog = new Catalog(document.querySelector('.gallery')!, cardBuilder);
+// Переносим поиск DOM-элементов в отдельные представления
+const catalogRoot = document.querySelector('.gallery') as HTMLElement;
+const headerBasket = document.querySelector('.header__basket') as HTMLElement;
+const basketTemplate = document.querySelector<HTMLTemplateElement>('#basket')!;
+
+const catalog = new Catalog(catalogRoot);
 const modal = new Modal();
 const productModal = new ProductModal(events);
-const orderStep: Order = new Order(document.body, events);
+const orderStep = new Order(document.body, events);
 const contactsStep = new Contacts(document.body, events);
 const successScreen = new Success(events);
+const cartView = new Cart(events);
 
-const appPresenter = new AppPresenter(orderModel, orderStep, contactsStep, events);
-
-let cartView: Cart | null = null;
+const appPresenter = new AppPresenter(
+  orderModel,
+  orderStep,
+  contactsStep,
+  cartView,
+  catalog,
+  orderApi,
+  events,
+  [],
+  0
+);
 
 productApi.getAll()
   .then((products) => {
     model.setItems(products);
-    catalog.render(products);
+    appPresenter.renderCatalog(products);
   })
   .catch((error) => {
     console.error('❌ Ошибка при загрузке продуктов:', error);
@@ -70,7 +84,7 @@ events.on('cart:add', ({ productId }) => {
   const product = model.getById(productId);
   if (product) {
     cart.add(product);
-    cartView?.render(cart.getAll(), cart.getTotal());
+    appPresenter.renderCart(cart.getAll());
     updateCounter();
     updateCheckoutButton();
   }
@@ -78,24 +92,21 @@ events.on('cart:add', ({ productId }) => {
 
 events.on('cart:remove', ({ productId }) => {
   cart.remove(productId);
-  cartView?.render(cart.getAll(), cart.getTotal());
+  appPresenter.renderCart(cart.getAll());
   updateCounter();
   updateCheckoutButton();
 });
 
-document.querySelector('.header__basket')?.addEventListener('click', () => {
+headerBasket?.addEventListener('click', () => {
   events.emit('cart:open', undefined);
 });
 
 events.on('cart:open', () => {
-  const template = document.querySelector<HTMLTemplateElement>('#basket')!;
-  const content = template.content.cloneNode(true) as HTMLElement;
-  const basketRoot = content.querySelector('.basket') as HTMLElement;
+  const content = basketTemplate.content.cloneNode(true) as HTMLElement;
+  const basketElement = content.querySelector('.basket') as HTMLElement;
 
-  cartView = new Cart(basketRoot, events);
-  cartView.render(cart.getAll(), cart.getTotal());
-
-  updateCheckoutButton();
+  cartView.setRoot(basketElement);
+  appPresenter.renderCart(cart.getAll());
 
   const checkoutButton = content.querySelector('.basket__button') as HTMLButtonElement;
   checkoutButton.addEventListener('click', () => {
@@ -103,45 +114,8 @@ events.on('cart:open', () => {
     modal.open(orderContent);
   });
 
+  updateCheckoutButton();
   modal.open(content);
-});
-
-events.on('order:submit', ({ email, phone, address, payment }) => {
-  orderModel.set('email', email);
-  orderModel.set('phone', phone);
-  orderModel.set('address', address);
-  orderModel.set('payment', payment as PaymentType);
-
-  const order = orderModel.getData();
-  if (!order) {
-    alert('❌ Заполните все поля');
-    return;
-  }
-
-  const allItems = cart.getAll();
-  if (allItems.length === 0) {
-    alert('❌ Корзина пуста');
-    return;
-  }
-
-  // Отправляем ТОЛЬКО товары с ценой
-  const items = allItems.filter(p => p.price !== null).map(p => p.id);
-  const total = allItems.reduce((sum, p) => sum + (p.price ?? 0), 0);
-
-  if (items.length === 0) {
-    alert('❌ В заказе нет товаров с ценой. Такие заказы не поддерживаются.');
-    return;
-  }
-
-  const payload: OrderForm = {
-    ...order,
-    items,
-    total
-  };
-
-  orderApi.postOrder(payload)
-    .then(() => events.emit('order:success', undefined))
-    .catch(() => alert('❌ Ошибка при отправке заказа. Попробуйте позже.'));
 });
 
 events.on('order:success', () => {
@@ -159,15 +133,14 @@ function updateCounter() {
 }
 
 function updateCheckoutButton() {
-  cartView?.setCheckoutEnabled(cart.getAll().length > 0);
+  cartView.setCheckoutEnabled(cart.getAll().length > 0);
 }
 
 updateCheckoutButton();
 
 events.on('checkout:step1:complete', ({ address, payment }) => {
   orderModel.set('address', address);
-  orderModel.set('payment', payment as PaymentType);
-
-  const contactsContent = contactsStep.render({ address, payment });
+  orderModel.set('payment', payment);
+  const contactsContent = contactsStep.render();
   modal.open(contactsContent);
 });

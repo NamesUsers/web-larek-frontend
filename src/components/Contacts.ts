@@ -1,4 +1,4 @@
-import { IEvents, PaymentType } from '../types';
+import { IEvents } from '../types';
 
 export class Contacts {
 	protected container: HTMLElement;
@@ -8,16 +8,9 @@ export class Contacts {
 	protected submitButton: HTMLButtonElement;
 	protected errorField: HTMLElement;
 
-	// Сохраняем данные из render
-	protected address: string;
-	protected payment: PaymentType;
-
 	constructor(protected parent: HTMLElement, protected events: IEvents) {}
 
-	render(data: { address: string; payment: PaymentType }): HTMLElement {
-		this.address = data.address;
-		this.payment = data.payment;
-
+	render(): HTMLElement {
 		const template = document.querySelector<HTMLTemplateElement>('#contacts')!;
 		const clone = template.content.cloneNode(true) as HTMLElement;
 		this.container = clone;
@@ -33,12 +26,7 @@ export class Contacts {
 
 		this.form.addEventListener('submit', (e) => {
 			e.preventDefault();
-			this.events.emit('order:submit', {
-				email: this.emailInput.value.trim(),
-				phone: this.phoneInput.value.trim(),
-				address: this.address,
-				payment: this.payment,
-			});
+			this.events.emit('order:submit', undefined); // ✅ <-- передаём явно
 		});
 
 		return this.container;
@@ -47,7 +35,7 @@ export class Contacts {
 	protected emitChange() {
 		this.events.emit('contacts:change', {
 			email: this.emailInput.value.trim(),
-			phone: this.phoneInput.value.trim()
+			phone: this.phoneInput.value.trim(),
 		});
 	}
 
